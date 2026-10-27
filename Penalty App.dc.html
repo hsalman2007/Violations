@@ -1,0 +1,649 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>سجل الجزاءات · Penalty Register</title>
+<link rel="stylesheet" href="_ds/broadsheet-d3d835df-cd97-403a-9a3b-51e83117828e/styles.css">
+<script src="_ds/broadsheet-d3d835df-cd97-403a-9a3b-51e83117828e/_ds_bundle.js"></script>
+<link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/duotone/style.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Naskh+Arabic:wght@400;500;600;700&display=swap">
+<script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+<style>html,body{margin:0;height:100%;background:var(--color-bg)}a{color:var(--color-accent-700)}a:hover{color:var(--color-accent-800)}*{box-sizing:border-box}</style>
+</helmet>
+<div dir="{{ dir }}" style="height:100vh;height:100dvh;display:flex;flex-direction:column;background:var(--color-bg);color:var(--color-text);font-family:var(--font-body), 'Noto Naskh Arabic', serif;position:relative;overflow:hidden">
+
+  <header style="flex:none;padding:14px 20px;padding-top:max(14px, env(safe-area-inset-top));box-shadow:0 1px 0 var(--color-divider)">
+    <div style="max-width:960px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;gap:16px">
+      <div style="display:flex;align-items:center;gap:12px;min-width:0">
+        <img src="assets/logo.png" alt="" style="width:56px;height:32px;object-fit:contain;flex:none"></img>
+        <div style="min-width:0">
+          <div style="font-family:var(--font-heading), 'Noto Naskh Arabic', serif;font-weight:700;font-size:18px;line-height:1.2">{{ t.appName }}</div>
+          <div style="font-size:12px;color:var(--color-neutral-700);line-height:1.3">{{ t.org }}</div>
+        </div>
+      </div>
+      <sc-if value="{{ wide }}" hint-placeholder-val="{{ true }}">
+        <nav style="display:flex;gap:4px">
+          <sc-for list="{{ tabs }}" as="tb" hint-placeholder-count="3">
+            <button onClick="{{ tb.go }}" style="all:unset;cursor:pointer;display:flex;align-items:center;gap:8px;padding:10px 16px;border-radius:var(--radius-lg);font-size:15px;color:{{ tb.color }};font-weight:{{ tb.weight }};background:{{ tb.bg }}" style-hover="background:var(--color-accent-100)"><i class="{{ tb.icon }}" style="font-size:20px"></i>{{ tb.label }}</button>
+          </sc-for>
+        </nav>
+      </sc-if>
+      <div style="display:flex;align-items:center;gap:6px;flex:none">
+        <button class="btn btn-ghost" onClick="{{ onSyncClick }}" title="{{ syncErr }}" style="padding:6px 8px;font-size:13px;gap:6px;display:flex;align-items:center;color:{{ syncColor }}"><i class="{{ syncIcon }}" style="font-size:20px"></i><sc-if value="{{ wide }}" hint-placeholder-val="{{ true }}"><span>{{ syncLabel }}</span></sc-if></button>
+        <button class="btn btn-secondary" onClick="{{ toggleLang }}" style="padding:6px 12px;font-size:14px;gap:6px;display:flex;align-items:center"><i class="ph-duotone ph-translate"></i>{{ t.langBtn }}</button>
+      </div>
+    </div>
+  </header>
+
+  <main style="flex:1;min-height:0;overflow-y:auto">
+    <div style="max-width:760px;margin:0 auto;padding:28px 20px 40px">
+
+    <sc-if value="{{ isHome }}" hint-placeholder-val="{{ true }}">
+      <div style="display:flex;flex-direction:column;gap:30px">
+        <div>
+          <div style="font-size:13px;color:var(--color-accent-700);letter-spacing:.04em">{{ todayLabel }}</div>
+          <h1 style="margin:4px 0 0;font-family:var(--font-heading), 'Noto Naskh Arabic', serif;font-weight:700;font-size:34px;line-height:1.2;text-wrap:pretty">{{ t.homeTitle }}</h1>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;max-width:520px">
+          <div><div style="font-size:40px;font-weight:600;line-height:1">{{ stats.total }}</div><div style="font-size:13px;color:var(--color-neutral-700);margin-top:6px">{{ t.stTotal }}</div></div>
+          <div><div style="font-size:40px;font-weight:600;line-height:1">{{ stats.emps }}</div><div style="font-size:13px;color:var(--color-neutral-700);margin-top:6px">{{ t.stEmp }}</div></div>
+          <div><div style="font-size:40px;font-weight:600;line-height:1;color:var(--color-accent-2-700)">{{ stats.month }}</div><div style="font-size:13px;color:var(--color-neutral-700);margin-top:6px">{{ t.stMonth }}</div></div>
+        </div>
+        <div style="display:flex;flex-wrap:wrap;gap:12px">
+          <button class="btn btn-primary" onClick="{{ startNew }}" style="display:flex;align-items:center;justify-content:center;gap:8px;min-height:50px;font-size:17px;flex:1 1 240px"><i class="ph-duotone ph-file-plus" style="font-size:20px"></i>{{ t.issueNew }}</button>
+          <div style="position:relative;flex:1 1 260px">
+            <i class="ph-duotone ph-magnifying-glass" style="position:absolute;inset-inline-start:14px;top:50%;transform:translateY(-50%);font-size:18px;color:var(--color-neutral-700)"></i>
+            <input class="input" inputmode="numeric" placeholder="{{ t.searchPhEnter }}" value="{{ homeQuery }}" onChange="{{ onHomeQuery }}" onKeyDown="{{ onHomeKey }}" style="width:100%;min-height:50px;padding-inline-start:42px;font-size:16px"></input>
+          </div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:4px">
+          <h2 style="margin:0 0 6px;font-family:var(--font-heading), 'Noto Naskh Arabic', serif;font-weight:600;font-size:21px">{{ t.recent }}</h2>
+          <sc-if value="{{ noRecent }}" hint-placeholder-val="{{ false }}"><p style="margin:0;color:var(--color-neutral-700);line-height:1.6">{{ t.emptyRecent }}</p></sc-if>
+          <sc-for list="{{ recent }}" as="r" hint-placeholder-count="4">
+            <button onClick="{{ r.open }}" style="all:unset;cursor:pointer;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 16px;padding:14px 10px;margin:0 -10px;border-radius:var(--radius-lg);text-align:start" style-hover="background:var(--color-accent-100)">
+              <div style="font-weight:600;font-size:16px;line-height:1.35;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ r.name }}</div>
+              <div style="font-size:13px;color:var(--color-neutral-700);white-space:nowrap" dir="ltr">{{ r.date }}</div>
+              <div style="font-size:14px;line-height:1.5;color:var(--color-neutral-800);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">{{ r.vio }}</div>
+              <div style="font-size:14px;color:var(--color-accent-700);white-space:nowrap;align-self:start;font-weight:600">{{ r.pen }}</div>
+              <div style="font-size:12px;color:var(--color-neutral-700);grid-column:1 / -1">#{{ r.no }} · {{ t.empId }} {{ r.id }} · {{ r.occ }}</div>
+            </button>
+          </sc-for>
+        </div>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ isNew }}" hint-placeholder-val="{{ false }}">
+      <div style="display:flex;flex-direction:column;gap:24px">
+        <div style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px">
+          <sc-for list="{{ steps }}" as="s" hint-placeholder-count="4">
+            <div style="display:flex;flex-direction:column;gap:6px">
+              <div style="height:3px;border-radius:2px;background:{{ s.bar }}"></div>
+              <div style="font-size:13px;color:{{ s.color }};font-weight:{{ s.weight }}">{{ s.n }}. {{ s.label }}</div>
+            </div>
+          </sc-for>
+        </div>
+
+        <sc-if value="{{ step1 }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex;flex-direction:column;gap:18px;max-width:560px">
+            <h1 style="margin:0;font-family:var(--font-heading), 'Noto Naskh Arabic', serif;font-weight:700;font-size:28px">{{ t.whoTitle }}</h1>
+            <label class="field" style="display:flex;flex-direction:column;gap:6px">
+              <span style="font-size:14px;font-weight:600">{{ t.empId }}</span>
+              <input class="input" inputmode="numeric" placeholder="10234" value="{{ form.id }}" onChange="{{ onId }}" style="min-height:52px;font-size:22px;letter-spacing:.06em" dir="ltr"></input>
+            </label>
+            <sc-if value="{{ empFound }}" hint-placeholder-val="{{ false }}">
+              <div class="card" style="padding:18px;display:flex;flex-direction:column;gap:10px">
+                <div style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--color-accent-700)"><i class="ph-duotone ph-identification-card" style="font-size:18px"></i>{{ t.found }}</div>
+                <div style="font-size:21px;font-weight:700;line-height:1.3">{{ form.name }}</div>
+                <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px 16px;font-size:14px">
+                  <div><div style="color:var(--color-neutral-700);font-size:12px">{{ t.job }}</div>{{ form.job }}</div>
+                  <div><div style="color:var(--color-neutral-700);font-size:12px">{{ t.nationality }}</div>{{ form.nationality }}</div>
+                  <div><div style="color:var(--color-neutral-700);font-size:12px">{{ t.dept }}</div>{{ form.dept }}</div>
+                </div>
+                <div style="font-size:14px;font-weight:600;color:{{ priorColor }}">{{ priorLabel }}</div>
+                <button class="btn btn-ghost" onClick="{{ editEmp }}" style="align-self:flex-start;padding:4px 0;font-size:14px;display:flex;gap:6px;align-items:center"><i class="ph-duotone ph-pencil-simple"></i>{{ t.editEmp }}</button>
+              </div>
+            </sc-if>
+            <sc-if value="{{ empEdit }}" hint-placeholder-val="{{ false }}">
+              <div style="display:flex;flex-direction:column;gap:14px">
+                <sc-if value="{{ empNew }}" hint-placeholder-val="{{ false }}"><div style="display:flex;align-items:center;gap:8px;font-size:14px;color:var(--color-accent-2-700)"><i class="ph-duotone ph-user-plus" style="font-size:18px"></i>{{ t.newEmp }}</div></sc-if>
+                <label style="display:flex;flex-direction:column;gap:6px"><span style="font-size:14px;font-weight:600">{{ t.name }}</span><input class="input" value="{{ form.name }}" onChange="{{ onName }}" style="min-height:48px;font-size:16px"></input></label>
+                <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px">
+                  <label style="display:flex;flex-direction:column;gap:6px;min-width:0"><span style="font-size:14px;font-weight:600">{{ t.job }}</span><input class="input" value="{{ form.job }}" onChange="{{ onJob }}" style="min-height:48px;font-size:16px;width:100%"></input></label>
+                  <label style="display:flex;flex-direction:column;gap:6px;min-width:0"><span style="font-size:14px;font-weight:600">{{ t.nationality }}</span><input class="input" value="{{ form.nationality }}" onChange="{{ onNat }}" style="min-height:48px;font-size:16px;width:100%"></input></label>
+                </div>
+                <label style="display:flex;flex-direction:column;gap:6px"><span style="font-size:14px;font-weight:600">{{ t.dept }}</span><input class="input" value="{{ form.dept }}" onChange="{{ onDept }}" style="min-height:48px;font-size:16px"></input></label>
+              </div>
+            </sc-if>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ step2 }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex;flex-direction:column;gap:14px">
+            <h1 style="margin:0;font-family:var(--font-heading), 'Noto Naskh Arabic', serif;font-weight:700;font-size:28px">{{ t.chooseViolation }}</h1>
+            <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));border:1px solid var(--color-divider);border-radius:var(--radius-lg);overflow:hidden;max-width:560px">
+              <sc-for list="{{ secTabs }}" as="s" hint-placeholder-count="3">
+                <button onClick="{{ s.pick }}" style="all:unset;cursor:pointer;text-align:center;padding:11px 4px;font-size:14px;line-height:1.3;background:{{ s.bg }};color:{{ s.color }};font-weight:600">{{ s.label }}</button>
+              </sc-for>
+            </div>
+            <div style="position:relative;max-width:560px">
+              <i class="ph-duotone ph-magnifying-glass" style="position:absolute;inset-inline-start:12px;top:50%;transform:translateY(-50%);font-size:17px;color:var(--color-neutral-700)"></i>
+              <input class="input" placeholder="{{ t.searchViolation }}" value="{{ vQuery }}" onChange="{{ onVQuery }}" style="width:100%;min-height:46px;padding-inline-start:38px;font-size:15px"></input>
+            </div>
+            <div style="display:flex;flex-direction:column">
+              <sc-for list="{{ vList }}" as="v" hint-placeholder-count="6">
+                <button onClick="{{ v.pick }}" style="all:unset;cursor:pointer;display:grid;grid-template-columns:30px minmax(0,1fr);gap:12px;padding:12px 10px;margin:0 -10px;border-radius:var(--radius-lg);background:{{ v.bg }}" style-hover="background:var(--color-accent-100)">
+                  <div style="width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;background:{{ v.numBg }};color:{{ v.numColor }}">{{ v.clause }}</div>
+                  <div style="display:flex;flex-direction:column;gap:4px;min-width:0">
+                    <div style="font-size:15px;line-height:1.55">{{ v.text }}</div>
+                    <div style="font-size:12px;color:var(--color-neutral-700)">{{ v.meta }}</div>
+                  </div>
+                </button>
+              </sc-for>
+            </div>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ step3 }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex;flex-direction:column;gap:18px;max-width:560px">
+            <h1 style="margin:0;font-family:var(--font-heading), 'Noto Naskh Arabic', serif;font-weight:700;font-size:28px">{{ t.detailsTitle }}</h1>
+            <label style="display:flex;flex-direction:column;gap:6px"><span style="font-size:14px;font-weight:600">{{ t.date }}</span><input class="input" type="date" value="{{ date }}" onChange="{{ onDate }}" style="min-height:48px;font-size:16px"></input></label>
+            <label style="display:flex;flex-direction:column;gap:6px"><span style="font-size:14px;font-weight:600">{{ t.notes }}</span><textarea class="input" rows="6" placeholder="{{ t.notesPh }}" value="{{ notes }}" onChange="{{ onNotes }}" style="font-size:15px;line-height:1.6;resize:vertical;font-family:inherit"></textarea></label>
+            <p style="margin:0;font-size:13px;color:var(--color-neutral-700);line-height:1.6">{{ t.notesHint }}</p>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ step4 }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex;flex-direction:column;gap:24px;max-width:600px">
+            <h1 style="margin:0;font-family:var(--font-heading), 'Noto Naskh Arabic', serif;font-weight:700;font-size:28px">{{ t.review }}</h1>
+            <div style="display:flex;flex-direction:column;gap:4px">
+              <div style="font-size:12px;color:var(--color-neutral-700)">{{ t.penaltyNo }} #{{ preview.no }} · {{ preview.date }}</div>
+              <div style="font-size:21px;font-weight:700">{{ form.name }}</div>
+              <div style="font-size:14px;color:var(--color-neutral-800)">{{ t.empId }} {{ form.id }} · {{ form.job }} · {{ form.dept }}</div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:6px">
+              <div style="font-size:12px;color:var(--color-neutral-700)">{{ preview.secLabel }} · {{ t.clause }} {{ preview.clause }}</div>
+              <div style="font-size:16px;line-height:1.6">{{ preview.vio }}</div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:8px">
+              <div style="font-size:12px;color:var(--color-neutral-700)">{{ t.decision }} — {{ preview.occ }}</div>
+              <div style="font-size:26px;font-weight:700;line-height:1.35;color:var(--color-accent-800)">{{ preview.decision }}</div>
+              <sc-if value="{{ preview.exceeded }}" hint-placeholder-val="{{ false }}"><div style="font-size:14px;color:var(--color-accent-2-700);display:flex;gap:6px;align-items:flex-start"><i class="ph-duotone ph-warning" style="font-size:18px;flex:none"></i>{{ t.exceeds }}</div></sc-if>
+            </div>
+            <sc-if value="{{ preview.hasNotes }}" hint-placeholder-val="{{ false }}">
+              <div style="display:flex;flex-direction:column;gap:6px"><div style="font-size:12px;color:var(--color-neutral-700)">{{ t.notes }}</div><div style="font-size:15px;line-height:1.6;white-space:pre-wrap">{{ notes }}</div></div>
+            </sc-if>
+          </div>
+        </sc-if>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ isRecords }}" hint-placeholder-val="{{ false }}">
+      <div style="display:flex;flex-direction:column;gap:22px">
+        <h1 style="margin:0;font-family:var(--font-heading), 'Noto Naskh Arabic', serif;font-weight:700;font-size:30px">{{ t.recordsTitle }}</h1>
+        <div style="position:relative;max-width:560px">
+          <i class="ph-duotone ph-magnifying-glass" style="position:absolute;left:14px;top:50%;transform:translateY(-50%);font-size:18px;color:var(--color-neutral-700)"></i>
+          <input class="input" inputmode="numeric" dir="ltr" placeholder="{{ t.searchPh }}" value="{{ rQuery }}" onChange="{{ onRQuery }}" style="width:100%;min-height:52px;padding-left:42px;padding-right:14px;font-size:18px;letter-spacing:.04em"></input>
+        </div>
+
+        <sc-if value="{{ rEmp.show }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex;flex-direction:column;gap:18px">
+            <div style="display:flex;flex-direction:column;gap:4px">
+              <div style="font-size:13px;color:var(--color-accent-700)">{{ t.empId }} {{ rEmp.id }}</div>
+              <div style="font-size:26px;font-weight:700;line-height:1.3">{{ rEmp.name }}</div>
+              <div style="font-size:14px;color:var(--color-neutral-800)">{{ rEmp.job }} · {{ rEmp.nationality }} · {{ rEmp.dept }}</div>
+            </div>
+            <button class="btn btn-primary" onClick="{{ rEmp.issue }}" style="display:flex;align-items:center;justify-content:center;gap:8px;min-height:48px;font-size:16px;align-self:flex-start;padding:0 22px"><i class="ph-duotone ph-file-plus" style="font-size:19px"></i>{{ t.issueFor }}</button>
+            <div style="display:flex;flex-direction:column">
+              <h2 style="margin:0 0 4px;font-family:var(--font-heading), 'Noto Naskh Arabic', serif;font-weight:600;font-size:20px">{{ t.history }} ({{ rEmp.count }})</h2>
+              <sc-for list="{{ rEmp.history }}" as="h" hint-placeholder-count="3">
+                <div style="display:grid;grid-template-columns:80px minmax(0,1fr) auto;gap:14px;padding:14px 10px;margin:0 -10px;border-radius:var(--radius-lg);align-items:start" style-hover="background:var(--color-accent-100)">
+                  <div style="display:flex;flex-direction:column;gap:2px"><div style="font-size:13px;font-weight:600" dir="ltr">{{ h.date }}</div><div style="font-size:11px;color:var(--color-neutral-700)">#{{ h.no }}</div></div>
+                  <button onClick="{{ h.open }}" style="all:unset;cursor:pointer;display:flex;flex-direction:column;gap:5px;min-width:0">
+                    <div style="font-size:14px;line-height:1.5;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">{{ h.vio }}</div>
+                    <div style="display:flex;flex-wrap:wrap;gap:6px;align-items:center">
+                      <span class="tag tag-accent">{{ h.pen }}</span>
+                      <span class="tag tag-outline">{{ h.occ }}</span>
+                      <span style="font-size:12px;color:var(--color-neutral-700)">{{ h.sec }} · {{ t.clause }} {{ h.clause }}</span>
+                    </div>
+                  </button>
+                  <div style="display:flex;gap:2px">
+                    <button class="btn btn-icon btn-ghost" onClick="{{ h.open }}" aria-label="{{ t.openDoc }}" title="{{ t.openDoc }}" style="font-size:19px"><i class="ph-duotone ph-file-text"></i></button>
+                    <button class="btn btn-icon btn-ghost" onClick="{{ h.del }}" aria-label="{{ t.del }}" title="{{ t.del }}" style="font-size:19px;color:var(--color-accent-2-700)"><i class="ph-duotone ph-trash"></i></button>
+                  </div>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ rNotFound }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex;flex-direction:column;gap:14px;padding:12px 0">
+            <i class="ph-duotone ph-seal-check" style="font-size:36px;color:var(--color-accent)"></i>
+            <div style="font-size:20px;font-weight:600;line-height:1.4">{{ rNotFoundLabel }}</div>
+            <button class="btn btn-secondary" onClick="{{ issueForQuery }}" style="align-self:flex-start;min-height:44px">{{ t.issueNew }}</button>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ rShowAll }}" hint-placeholder-val="{{ true }}">
+          <div style="display:flex;flex-direction:column;gap:36px">
+            <div style="display:flex;flex-direction:column">
+              <h2 style="margin:0 0 4px;font-family:var(--font-heading), 'Noto Naskh Arabic', serif;font-weight:600;font-size:20px">{{ t.allEmployees }}</h2>
+              <sc-if value="{{ noEmps }}" hint-placeholder-val="{{ false }}"><p style="margin:0;color:var(--color-neutral-700)">{{ t.emptyRecent }}</p></sc-if>
+              <sc-for list="{{ empList }}" as="e" hint-placeholder-count="3">
+                <button onClick="{{ e.open }}" style="all:unset;cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 10px;margin:0 -10px;border-radius:var(--radius-lg)" style-hover="background:var(--color-accent-100)">
+                  <div style="min-width:0"><div style="font-size:16px;font-weight:600">{{ e.name }}</div><div style="font-size:13px;color:var(--color-neutral-700)">{{ t.empId }} {{ e.id }} · {{ e.dept }}</div></div>
+                  <div style="font-size:22px;font-weight:600;color:var(--color-accent-700)">{{ e.count }}</div>
+                </button>
+              </sc-for>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:12px;max-width:560px">
+              <h2 style="margin:0;font-family:var(--font-heading), 'Noto Naskh Arabic', serif;font-weight:600;font-size:20px;display:flex;align-items:center;gap:8px"><i class="ph-duotone ph-github-logo" style="font-size:22px"></i>{{ t.ghTitle }}</h2>
+              <sc-if value="{{ ghOn }}" hint-placeholder-val="{{ false }}">
+                <div style="display:flex;flex-direction:column;gap:12px">
+                  <p style="margin:0;font-size:14px;color:var(--color-neutral-700);line-height:1.6">{{ t.ghHintOn }}</p>
+                  <div style="display:flex;flex-direction:column;gap:2px">
+                    <div dir="ltr" style="font-size:16px;font-weight:600;text-align:start;word-break:break-all">{{ gh.owner }}/{{ gh.repo }}</div>
+                    <div dir="ltr" style="font-size:13px;color:var(--color-neutral-700);text-align:start;word-break:break-all">{{ gh.branch }} · {{ gh.path }}</div>
+                    <div style="font-size:13px;color:{{ syncColor }};margin-top:4px">{{ syncLabel }} · {{ syncAtLabel }}</div>
+                    <sc-if value="{{ hasSyncErr }}" hint-placeholder-val="{{ false }}"><div style="font-size:13px;color:var(--color-accent-2-700)">{{ syncErr }}</div></sc-if>
+                    <sc-if value="{{ ghPublic }}" hint-placeholder-val="{{ false }}"><div style="font-size:13px;color:var(--color-accent-2-700)">{{ t.ghPublicWarn }}</div></sc-if>
+                  </div>
+                  <div style="display:flex;flex-wrap:wrap;gap:10px">
+                    <button class="btn btn-secondary" onClick="{{ syncNow }}" style="min-height:44px;display:flex;gap:8px;align-items:center"><i class="ph-duotone ph-arrows-clockwise" style="font-size:18px"></i>{{ t.ghSyncNow }}</button>
+                    <a class="btn btn-ghost" href="{{ ghRepoUrl }}" target="_blank" rel="noopener" style="min-height:44px;display:flex;gap:8px;align-items:center;text-decoration:none"><i class="ph-duotone ph-arrow-square-out" style="font-size:18px"></i>{{ t.ghOpenFile }}</a>
+                    <button class="btn btn-ghost" onClick="{{ disconnectGh }}" style="min-height:44px;color:var(--color-accent-2-700)">{{ t.ghDisconnect }}</button>
+                  </div>
+                </div>
+              </sc-if>
+              <sc-if value="{{ ghOff }}" hint-placeholder-val="{{ true }}">
+                <div style="display:flex;flex-direction:column;gap:12px">
+                  <p style="margin:0;font-size:14px;color:var(--color-neutral-700);line-height:1.6">{{ t.ghHintOff }}</p>
+                  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px">
+                    <label style="display:flex;flex-direction:column;gap:6px;min-width:0"><span style="font-size:13px;font-weight:600">{{ t.ghOwner }}</span><input class="input" dir="ltr" autocomplete="off" spellcheck="false" placeholder="my-company" value="{{ ghForm.owner }}" onChange="{{ onGhField.owner }}" style="min-height:44px;font-size:15px;width:100%"></input></label>
+                    <label style="display:flex;flex-direction:column;gap:6px;min-width:0"><span style="font-size:13px;font-weight:600">{{ t.ghRepo }}</span><input class="input" dir="ltr" autocomplete="off" spellcheck="false" placeholder="penalty-records" value="{{ ghForm.repo }}" onChange="{{ onGhField.repo }}" style="min-height:44px;font-size:15px;width:100%"></input></label>
+                    <label style="display:flex;flex-direction:column;gap:6px;min-width:0"><span style="font-size:13px;font-weight:600">{{ t.ghBranch }}</span><input class="input" dir="ltr" autocomplete="off" spellcheck="false" value="{{ ghForm.branch }}" onChange="{{ onGhField.branch }}" style="min-height:44px;font-size:15px;width:100%"></input></label>
+                    <label style="display:flex;flex-direction:column;gap:6px;min-width:0"><span style="font-size:13px;font-weight:600">{{ t.ghPath }}</span><input class="input" dir="ltr" autocomplete="off" spellcheck="false" value="{{ ghForm.path }}" onChange="{{ onGhField.path }}" style="min-height:44px;font-size:15px;width:100%"></input></label>
+                  </div>
+                  <label style="display:flex;flex-direction:column;gap:6px"><span style="font-size:13px;font-weight:600">{{ t.ghToken }}</span><input class="input" type="password" dir="ltr" autocomplete="off" placeholder="github_pat_…" value="{{ ghForm.token }}" onChange="{{ onGhField.token }}" style="min-height:44px;font-size:15px"></input></label>
+                  <div style="font-size:13px;line-height:1.6;color:var(--color-neutral-700)"><a href="{{ ghTokenUrl }}" target="_blank" rel="noopener">{{ t.ghTokenHelp }}</a>. {{ t.ghTokenNote }}</div>
+                  <sc-if value="{{ hasGhFormErr }}" hint-placeholder-val="{{ false }}"><div style="font-size:14px;color:var(--color-accent-2-700)">{{ ghFormErr }}</div></sc-if>
+                  <button class="btn btn-primary" onClick="{{ connectGh }}" disabled="{{ ghBusy }}" style="min-height:46px;align-self:flex-start;padding:0 24px;display:flex;gap:8px;align-items:center"><i class="ph-duotone ph-plugs-connected" style="font-size:18px"></i>{{ t.ghConnect }}</button>
+                </div>
+              </sc-if>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:10px">
+              <h2 style="margin:0;font-family:var(--font-heading), 'Noto Naskh Arabic', serif;font-weight:600;font-size:20px">{{ t.backupTitle }}</h2>
+              <p style="margin:0;font-size:14px;color:var(--color-neutral-700);line-height:1.6;max-width:560px">{{ t.backupHint }}</p>
+              <div style="display:flex;flex-wrap:wrap;gap:10px">
+                <button class="btn btn-secondary" onClick="{{ exportBackup }}" style="min-height:44px;display:flex;gap:8px;align-items:center"><i class="ph-duotone ph-download-simple" style="font-size:18px"></i>{{ t.backupDl }}</button>
+                <button class="btn btn-secondary" onClick="{{ importBackup }}" style="min-height:44px;display:flex;gap:8px;align-items:center"><i class="ph-duotone ph-upload-simple" style="font-size:18px"></i>{{ t.backupUp }}</button>
+                <button class="btn btn-secondary" onClick="{{ exportCsv }}" style="min-height:44px;display:flex;gap:8px;align-items:center"><i class="ph-duotone ph-table" style="font-size:18px"></i>{{ t.csv }}</button>
+              </div>
+            </div>
+          </div>
+        </sc-if>
+      </div>
+    </sc-if>
+    </div>
+  </main>
+
+  <sc-if value="{{ showStepBar }}" hint-placeholder-val="{{ false }}">
+    <div style="flex:none;padding:14px 20px;background:var(--color-bg);box-shadow:0 -1px 0 var(--color-divider)">
+      <div style="max-width:760px;margin:0 auto;display:flex;flex-direction:column;gap:12px">
+        <sc-if value="{{ ladder.show }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex;flex-direction:column;gap:8px">
+            <div style="display:flex;justify-content:space-between;gap:8px;font-size:12px;color:var(--color-neutral-700)"><span>{{ t.ladderTitle }} · {{ t.clause }} {{ ladder.clause }}</span><span style="color:var(--color-accent-700);font-weight:600">{{ ladder.nowLabel }}</span></div>
+            <div style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px">
+              <sc-for list="{{ ladder.cells }}" as="c" hint-placeholder-count="4">
+                <div style="border-radius:var(--radius-lg);padding:7px 8px;min-height:54px;display:flex;flex-direction:column;gap:3px;background:{{ c.bg }};color:{{ c.color }};box-shadow:{{ c.ring }}">
+                  <div style="font-size:11px">{{ c.ord }}</div>
+                  <div style="font-size:13px;font-weight:600;line-height:1.3">{{ c.label }}</div>
+                </div>
+              </sc-for>
+            </div>
+            <sc-if value="{{ ladder.exceeded }}" hint-placeholder-val="{{ false }}"><div style="font-size:12px;color:var(--color-accent-2-700)">{{ t.exceeds }}</div></sc-if>
+          </div>
+        </sc-if>
+        <div style="display:flex;gap:10px">
+          <button class="btn btn-ghost" onClick="{{ back }}" style="min-height:50px;padding:0 18px;font-size:16px">{{ t.back }}</button>
+          <button class="btn btn-primary" onClick="{{ nextStep }}" disabled="{{ nextDisabled }}" style="flex:1;min-height:50px;font-size:17px;display:flex;align-items:center;justify-content:center;gap:8px">{{ nextLabel }}</button>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ narrow }}" hint-placeholder-val="{{ false }}">
+    <div style="flex:none;display:grid;grid-template-columns:repeat(3,1fr);padding:8px 12px;padding-bottom:max(10px, env(safe-area-inset-bottom));background:var(--color-bg);box-shadow:0 -1px 0 var(--color-divider)">
+      <sc-for list="{{ tabs }}" as="tb" hint-placeholder-count="3">
+        <button onClick="{{ tb.go }}" style="all:unset;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px 0;min-height:44px;color:{{ tb.color }}">
+          <i class="{{ tb.icon }}" style="font-size:24px"></i>
+          <span style="font-size:12px;font-weight:{{ tb.weight }}">{{ tb.label }}</span>
+        </button>
+      </sc-for>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ toast }}" hint-placeholder-val="{{ false }}">
+    <div style="position:absolute;left:50%;transform:translateX(-50%);top:80px;z-index:40;width:min(420px, calc(100% - 40px));background:var(--color-text);color:var(--color-bg);padding:12px 16px;border-radius:var(--radius-lg);font-size:15px;display:flex;gap:8px;align-items:center;box-shadow:var(--shadow-md)"><i class="ph-duotone ph-check-circle" style="font-size:20px"></i>{{ toast }}</div>
+  </sc-if>
+
+  <sc-if value="{{ sheet.show }}" hint-placeholder-val="{{ false }}">
+    <div style="position:absolute;inset:0;z-index:30;display:flex;flex-direction:column;justify-content:{{ sheet.justify }};align-items:center;background:color-mix(in srgb, var(--color-text) 45%, transparent);padding:{{ sheet.pad }}">
+      <div onClick="{{ closeSheet }}" style="position:absolute;inset:0"></div>
+      <div style="position:relative;width:100%;max-width:{{ sheet.maxW }};max-height:100%;overflow-y:auto;background:var(--color-bg);border-radius:{{ sheet.radius }};padding:16px 22px 24px;padding-bottom:max(24px, env(safe-area-inset-bottom));display:flex;flex-direction:column;gap:16px;box-shadow:var(--shadow-lg)">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px">
+          <div><div style="font-size:19px;font-weight:700">{{ t.docTitle }} #{{ sheet.no }}</div><div style="font-size:13px;color:var(--color-neutral-700)">{{ sheet.name }} · {{ t.empId }} {{ sheet.id }}</div></div>
+          <button class="btn btn-icon btn-ghost" onClick="{{ closeSheet }}" aria-label="{{ t.close }}" style="font-size:20px"><i class="ph-duotone ph-x"></i></button>
+        </div>
+        <div style="align-self:center;width:{{ sheet.pw }}px;height:{{ sheet.ph }}px;background:#fff;box-shadow:var(--shadow-md);overflow:hidden;flex:none">
+          <iframe title="preview" srcDoc="{{ sheet.html }}" style="width:{{ sheet.pw }}px;height:{{ sheet.ph }}px;border:0;display:block;pointer-events:none"></iframe>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+          <button class="btn btn-primary" onClick="{{ exportWord }}" style="min-height:50px;display:flex;align-items:center;justify-content:center;gap:8px;font-size:16px"><i class="ph-duotone ph-file-doc" style="font-size:20px"></i>{{ t.exportWord }}</button>
+          <button class="btn btn-secondary" onClick="{{ exportPdf }}" style="min-height:50px;display:flex;align-items:center;justify-content:center;gap:8px;font-size:16px"><i class="ph-duotone ph-file-pdf" style="font-size:20px"></i>{{ t.exportPdf }}</button>
+        </div>
+        <sc-if value="{{ sheet.busy }}" hint-placeholder-val="{{ false }}"><div style="font-size:13px;color:var(--color-neutral-700);text-align:center">{{ t.preparing }}</div></sc-if>
+      </div>
+    </div>
+  </sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;lang&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;ar&quot;,&quot;en&quot;],&quot;default&quot;:&quot;ar&quot;,&quot;tsType&quot;:&quot;'ar'|'en'&quot;}}">
+const KEY = 'rimaya-penalties';
+const STR = {
+  ar: { appName: 'سجل الجزاءات', org: 'الرماية · إدارة شئون الموظفين', langBtn: 'EN', homeTitle: 'سجل المخالفات والجزاءات', stTotal: 'جزاءات مسجلة', stEmp: 'موظفون', stMonth: 'هذا الشهر', issueNew: 'إصدار جزاء جديد', searchPh: 'ابحث بالرقم الوظيفي', searchPhEnter: 'ابحث بالرقم الوظيفي ثم Enter', recent: 'أحدث الجزاءات', emptyRecent: 'لا توجد جزاءات مسجلة بعد.', steps: ['الموظف', 'المخالفة', 'التفاصيل', 'المراجعة'], whoTitle: 'على من يُطبق الجزاء؟', empId: 'الرقم الوظيفي', name: 'الاسم', nationality: 'الجنسية', job: 'المهنة', dept: 'المشروع / القسم', found: 'موظف مسجل', editEmp: 'تعديل البيانات', newEmp: 'رقم غير مسجل — أكمل بيانات الموظف', prior: (n) => `${n} جزاء سابق مسجل`, noPrior: 'لا توجد جزاءات سابقة', next: 'التالي', back: 'رجوع', chooseViolation: 'اختر المخالفة', searchViolation: 'ابحث في نص المخالفة', clause: 'البند', ladderTitle: 'تدرج الجزاء', ords: ['أول مرة', 'ثاني مرة', 'ثالث مرة', 'رابع مرة'], occ: (n) => `المرة ${['الأولى','الثانية','الثالثة','الرابعة'][n-1] || n}`, now: (n) => `سيُطبق: ${['أول','ثاني','ثالث','رابع'][Math.min(n,4)-1]} مرة`, prevCount: (n) => n ? `سبق ارتكابها ${n} مرة` : '', exceeds: 'تجاوز عدد التكرارات في الجدول — يُحال الأمر إلى الإدارة.', detailsTitle: 'تفاصيل الواقعة', date: 'تاريخ الجزاء', notes: 'وصف الواقعة / ملاحظات', notesPh: 'مثال: حضر الساعة 7:40 بدلاً من 7:15 دون إذن مسبق.', notesHint: 'الملاحظات تُحفظ في سجل الموظف ولا تظهر في النموذج المطبوع.', review: 'مراجعة وإصدار', penaltyNo: 'جزاء رقم', decision: 'الجزاء المقرر', issue: 'إصدار وحفظ', saved: (n) => `تم حفظ الجزاء رقم ${n}`, recordsTitle: 'سجلات الموظفين', notFound: (id) => `لا توجد جزاءات مسجلة للرقم الوظيفي ${id}.`, issueFor: 'إصدار جزاء لهذا الموظف', history: 'سجل الجزاءات', allEmployees: 'جميع الموظفين', docTitle: 'إنذار ــ جزاء', exportWord: 'Word', exportPdf: 'PDF', close: 'إغلاق', preparing: 'جاري تجهيز الملف…', openDoc: 'عرض النموذج', del: 'حذف', confirmDel: (n) => `حذف الجزاء رقم ${n}؟ سيتم إعادة احتساب التكرار للجزاءات اللاحقة.`, deleted: 'تم الحذف', backupTitle: 'النسخ الاحتياطي', backupHint: 'نزّل نسخة احتياطية من السجل كاملاً، أو استعد نسخة سابقة. عند الاتصال بـ GitHub تُرفع النسخة المستعادة إليه.', backupDl: 'تنزيل نسخة احتياطية', backupUp: 'استعادة نسخة', csv: 'تصدير Excel (CSV)', restored: 'تمت استعادة البيانات', badFile: 'الملف غير صالح', confirmRestore: 'استبدال جميع البيانات الحالية بالنسخة الاحتياطية؟', tabs: ['الرئيسية', 'جزاء جديد', 'السجلات'],
+    syncLocal: 'على الجهاز', syncOk: 'متزامن', syncBusy: 'جاري المزامنة…', syncError: 'خطأ في المزامنة', lastSync: (t) => `آخر مزامنة ${t}`,
+    ghTitle: 'التخزين على GitHub', ghHintOff: 'احفظ السجلات في ملف داخل مستودع GitHub لتتشاركها جميع الأجهزة. يُفضّل مستودع خاص (Private) منفصل للبيانات.', ghHintOn: 'كل جزاء يُحفظ كتعديل (commit) في الملف التالي. تُحدّث البيانات تلقائياً كل دقيقة.',
+    ghOwner: 'المالك (اسم المستخدم أو المؤسسة)', ghRepo: 'المستودع', ghBranch: 'الفرع', ghPath: 'مسار الملف', ghToken: 'رمز الوصول (Fine-grained token)', ghTokenHelp: 'أنشئ رمزاً بصلاحية Contents: Read and write على هذا المستودع فقط', ghTokenNote: 'يُحفظ الرمز على هذا الجهاز فقط ولا يُرفع لأي مكان.',
+    ghConnect: 'اتصال', ghConnecting: 'جاري الاتصال…', ghDisconnect: 'قطع الاتصال', ghSyncNow: 'مزامنة الآن', ghOpenFile: 'عرض الملف على GitHub', ghFill: 'أكمل المالك والمستودع والرمز.',
+    ghUseCloud: (c, l) => `يحتوي ملف GitHub على ${c} جزاء. سيتم استبدال ${l} جزاء محفوظ على هذا الجهاز. متابعة؟`, ghCreate: (p, n) => `الملف ${p} غير موجود. إنشاؤه ورفع ${n} جزاء من هذا الجهاز؟`,
+    ghConnected: 'تم الاتصال بـ GitHub', ghDiscConfirm: 'قطع الاتصال؟ تبقى البيانات في GitHub ونسخة منها على هذا الجهاز.', ghSaveFail: 'لم يُحفظ', ghPublicWarn: 'تنبيه: هذا المستودع عام — بيانات الموظفين مرئية للجميع. استخدم مستودعاً خاصاً.',
+    ghE401: 'رمز الوصول غير صالح أو منتهي.', ghERO: 'الرمز لا يملك صلاحية الكتابة (Contents: Read and write).', ghE404: 'المستودع غير موجود أو الرمز لا يملك صلاحية الوصول إليه.', ghENet: 'تعذر الوصول إلى GitHub — تحقق من الاتصال بالإنترنت.' },
+  en: { appName: 'Penalty Register', org: 'Al Rimaya · Personnel Affairs', langBtn: 'ع', homeTitle: 'Violations & penalties register', stTotal: 'Penalties on file', stEmp: 'Employees', stMonth: 'This month', issueNew: 'Issue a new penalty', searchPh: 'Search by employee ID', searchPhEnter: 'Employee ID, then Enter', recent: 'Recent penalties', emptyRecent: 'No penalties on file yet.', steps: ['Employee', 'Violation', 'Details', 'Review'], whoTitle: 'Who is this penalty for?', empId: 'Employee ID', name: 'Name', nationality: 'Nationality', job: 'Profession', dept: 'Project / Dept.', found: 'Employee on file', editEmp: 'Edit details', newEmp: 'New ID — complete the employee details', prior: (n) => `${n} prior ${n === 1 ? 'penalty' : 'penalties'} on file`, noPrior: 'No prior penalties', next: 'Next', back: 'Back', chooseViolation: 'Choose the violation', searchViolation: 'Search violations', clause: 'Clause', ladderTitle: 'Penalty ladder', ords: ['1st', '2nd', '3rd', '4th'], occ: (n) => `${['1st','2nd','3rd','4th'][n-1] || n + 'th'} occurrence`, now: (n) => `Applies: ${['1st','2nd','3rd','4th'][Math.min(n,4)-1]} time`, prevCount: (n) => n ? `Committed ${n}× before` : '', exceeds: 'Repetitions exceed the schedule — refer to management.', detailsTitle: 'Incident details', date: 'Penalty date', notes: 'Incident description / notes', notesPh: 'e.g. Arrived 7:40 instead of 7:15 without prior permission.', notesHint: 'Notes are kept in the employee record and are not printed on the form.', review: 'Review & issue', penaltyNo: 'Penalty no.', decision: 'Penalty decided', issue: 'Issue & save', saved: (n) => `Penalty #${n} saved`, recordsTitle: 'Employee records', notFound: (id) => `No penalties on record for employee ID ${id}.`, issueFor: 'Issue a penalty for this employee', history: 'Penalty history', allEmployees: 'All employees', docTitle: 'Warning & Penalty', exportWord: 'Word', exportPdf: 'PDF', close: 'Close', preparing: 'Preparing file…', openDoc: 'Open form', del: 'Delete', confirmDel: (n) => `Delete penalty #${n}? Occurrence counts of later penalties will be recalculated.`, deleted: 'Deleted', backupTitle: 'Backup', backupHint: 'Download a copy of the whole register, or restore an earlier one. When connected to GitHub, a restored backup is uploaded there.', backupDl: 'Download backup', backupUp: 'Restore backup', csv: 'Export Excel (CSV)', restored: 'Data restored', badFile: 'Invalid file', confirmRestore: 'Replace all current data with this backup?', tabs: ['Home', 'New penalty', 'Records'],
+    syncLocal: 'This device', syncOk: 'Synced', syncBusy: 'Syncing…', syncError: 'Sync error', lastSync: (t) => `Last synced ${t}`,
+    ghTitle: 'Storage on GitHub', ghHintOff: 'Save the register as a file in a GitHub repository so every device shares it. Use a separate private repository for the data.', ghHintOn: 'Every penalty is saved as a commit to the file below. Data refreshes automatically every minute.',
+    ghOwner: 'Owner (user or organization)', ghRepo: 'Repository', ghBranch: 'Branch', ghPath: 'File path', ghToken: 'Access token (fine-grained)', ghTokenHelp: 'Create a token with Contents: Read and write on this repository only', ghTokenNote: 'The token is stored on this device only and never uploaded.',
+    ghConnect: 'Connect', ghConnecting: 'Connecting…', ghDisconnect: 'Disconnect', ghSyncNow: 'Sync now', ghOpenFile: 'View file on GitHub', ghFill: 'Fill in owner, repository and token.',
+    ghUseCloud: (c, l) => `The GitHub file has ${c} penalties. This replaces the ${l} penalties stored on this device. Continue?`, ghCreate: (p, n) => `${p} doesn’t exist yet. Create it and upload the ${n} penalties on this device?`,
+    ghConnected: 'Connected to GitHub', ghDiscConfirm: 'Disconnect? Data stays in GitHub and a copy stays on this device.', ghSaveFail: 'Not saved', ghPublicWarn: 'Warning: this repository is public — employee data is visible to anyone. Use a private repository.',
+    ghE401: 'The access token is invalid or expired.', ghERO: 'The token has no write access (Contents: Read and write).', ghE404: 'Repository not found, or the token can’t access it.', ghENet: 'Can’t reach GitHub — check the internet connection.' },
+};
+const today = () => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; };
+const blankForm = () => ({ id: '', name: '', nationality: '', job: '', dept: '' });
+const download = (blob, name) => { const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = name; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 5000); };
+
+class Component extends DCLogic {
+  state = { lang: localStorage.getItem(KEY + '-lang') || (this.props.lang ?? 'ar'), tab: 'home', step: 1, form: blankForm(), editing: false, sec: 0, clause: null, selSec: null, vQuery: '', date: today(), notes: '', homeQuery: '', rQuery: '', sheetNo: null, busy: false, toast: '', db: null, lib: null, vw: window.innerWidth, vh: window.innerHeight };
+
+  componentDidMount() {
+    let db = null, gh = null;
+    try { db = JSON.parse(localStorage.getItem(KEY)); } catch (e) {}
+    try { gh = JSON.parse(localStorage.getItem(KEY + '-gh')); } catch (e) {}
+    if (!db || !Array.isArray(db.records)) { db = { nextNo: 1, employees: {}, records: [] }; localStorage.setItem(KEY, JSON.stringify(db)); }
+    const host = location.hostname.endsWith('.github.io') ? location.hostname.split('.')[0] : '';
+    this.setState({ db, gh, sync: gh ? 'busy' : 'local', ghForm: { owner: host, repo: '', branch: 'main', path: 'data/penalty-records.json', token: '' } });
+    this._rs = () => this.setState({ vw: window.innerWidth, vh: window.innerHeight });
+    window.addEventListener('resize', this._rs);
+    this._focus = () => { if (document.visibilityState === 'visible') this.pull(); };
+    document.addEventListener('visibilitychange', this._focus);
+    this._poll = setInterval(() => this.pull(), 60000);
+    const imp = (f) => import(new URL(f, location.href).href);
+    Promise.all([imp('penalty-data.js'), imp('form-export.js'), imp('github-sync.js')]).then(([d, f, g]) => { this.setState({ lib: { ...d, ...f, ...g } }, () => this.pull()); });
+  }
+  componentWillUnmount() { window.removeEventListener('resize', this._rs); document.removeEventListener('visibilitychange', this._focus); clearInterval(this._poll); }
+  save(db) { localStorage.setItem(KEY, JSON.stringify(db)); this.setState({ db }); }
+  ghErr(e) {
+    const T = STR[this.state.lang];
+    if (e && e.status === 401) return T.ghE401;
+    if (e && e.status === 403 && e.message === 'read-only') return T.ghERO;
+    if (e && e.status === 404) return T.ghE404;
+    if (e && e.status) return `GitHub ${e.status}: ${e.message}`;
+    return T.ghENet;
+  }
+  async pull() {
+    const { gh, lib } = this.state;
+    if (!gh || !lib || this._busy) return;
+    this._busy = true; this.setState({ sync: 'busy' });
+    try {
+      const cur = await lib.ghLoad(gh);
+      if (cur && cur.db) this.save(cur.db);
+      this.setState({ sync: 'ok', syncAt: Date.now(), syncErr: '' });
+    } catch (e) { this.setState({ sync: 'error', syncErr: this.ghErr(e) }); }
+    this._busy = false;
+  }
+  // fn(db) -> { db, result }. Writes to GitHub when connected (re-reading latest first), else locally.
+  async mutate(fn, message) {
+    const { gh, lib } = this.state;
+    if (!gh) { const out = fn(JSON.parse(JSON.stringify(this.state.db))); this.save(out.db); return out; }
+    this._busy = true; this.setState({ sync: 'busy' });
+    try {
+      const out = await lib.ghCommit(gh, fn, message, { nextNo: 1, employees: {}, records: [] });
+      this.save(out.db); this.setState({ sync: 'ok', syncAt: Date.now(), syncErr: '' });
+      return out;
+    } catch (e) {
+      const msg = this.ghErr(e); this.setState({ sync: 'error', syncErr: msg }); this.flash(STR[this.state.lang].ghSaveFail + ' — ' + msg);
+      return null;
+    } finally { this._busy = false; }
+  }
+  async connectGh() {
+    const T = STR[this.state.lang], lib = this.state.lib;
+    const c = Object.fromEntries(Object.entries(this.state.ghForm).map(([k, v]) => [k, String(v).trim()]));
+    c.path = c.path.replace(/^\/+/, '') || 'data/penalty-records.json'; c.branch = c.branch || 'main';
+    if (!c.owner || !c.repo || !c.token) { this.setState({ ghFormErr: T.ghFill }); return; }
+    this.setState({ ghBusy: true, ghFormErr: '' });
+    try {
+      const info = await lib.ghTest(c);
+      const cur = await lib.ghLoad(c);
+      const local = this.state.db;
+      if (cur && cur.db) {
+        if (local.records.length && !confirm(T.ghUseCloud(cur.db.records.length, local.records.length))) { this.setState({ ghBusy: false }); return; }
+        this.save(cur.db);
+      } else {
+        if (!confirm(T.ghCreate(c.path, local.records.length))) { this.setState({ ghBusy: false }); return; }
+        await lib.ghCommit(c, () => ({ db: local }), 'Create penalty register', local);
+      }
+      localStorage.setItem(KEY + '-gh', JSON.stringify(c));
+      this.setState({ gh: c, ghBusy: false, sync: 'ok', syncAt: Date.now(), syncErr: '', ghPublic: !info.private });
+      this.flash(T.ghConnected);
+    } catch (e) { this.setState({ ghBusy: false, ghFormErr: this.ghErr(e) }); }
+  }
+  disconnectGh() {
+    if (!confirm(STR[this.state.lang].ghDiscConfirm)) return;
+    localStorage.removeItem(KEY + '-gh');
+    this.setState({ gh: null, sync: 'local', syncErr: '', ghForm: { ...this.state.ghForm, ...this.state.gh, token: '' } });
+  }
+  flash(msg) { this.setState({ toast: msg }); clearTimeout(this._tt); this._tt = setTimeout(() => this.setState({ toast: '' }), 2600); }
+
+  nextFor(empId, sec, clause, dbArg) {
+    const db = dbArg || this.state.db;
+    const prior = db.records.filter((r) => r.empId === empId && r.sec === sec && r.clause === clause).length;
+    return this.ladderAt(prior + 1, sec, clause, prior);
+  }
+  ladderAt(occ, sec, clause, prior) {
+    const p = this.state.lib.SECTIONS[sec].items.find((i) => i[0] === clause)[3];
+    let idx = Math.min(occ, 4) - 1, exceeded = occ > 4;
+    while (p[idx] === '-' && idx > 0) { idx--; exceeded = true; }
+    return { prior: prior ?? occ - 1, occ, idx, code: p[idx], exceeded, ladder: p };
+  }
+
+  getRec(no) { return this.state.db.records.find((r) => r.no === no); }
+
+  async exportWord() {
+    const { lib, db } = this.state; const rec = this.getRec(this.state.sheetNo); const emp = db.employees[rec.empId];
+    this.setState({ busy: true });
+    try { download(await lib.fillDocx('assets/penalty-form.docx', rec, emp), `Penalty-${lib.padNo(rec.no)}-${emp.id}.docx`); } catch (e) { console.error(e); }
+    this.setState({ busy: false });
+  }
+  exportPdf() {
+    const { lib, db } = this.state; const rec = this.getRec(this.state.sheetNo); const emp = db.employees[rec.empId];
+    const html = lib.buildFormHTML(rec, emp, new URL('assets/logo.png', location.href).href);
+    const f = document.createElement('iframe');
+    f.style.cssText = 'position:fixed;width:794px;height:1123px;left:-10000px;top:0;border:0';
+    document.body.appendChild(f);
+    f.contentDocument.open(); f.contentDocument.write(html.replace('<head>', `<head><title>Penalty-${lib.padNo(rec.no)}-${emp.id}</title>`)); f.contentDocument.close();
+    const go = () => { try { f.contentWindow.focus(); f.contentWindow.print(); } catch (e) { console.error(e); } setTimeout(() => f.remove(), 60000); };
+    const imgs = [...f.contentDocument.images].map((i) => i.complete ? 0 : new Promise((r) => { i.onload = i.onerror = r; }));
+    Promise.all([f.contentDocument.fonts ? f.contentDocument.fonts.ready : 0, ...imgs]).then(() => setTimeout(go, 400));
+  }
+
+  async deleteRec(no) {
+    const T = STR[this.state.lang], lib = this.state.lib;
+    if (!confirm(T.confirmDel(lib.padNo(no)))) return;
+    const out = await this.mutate((db) => {
+      const gone = db.records.find((r) => r.no === no);
+      if (!gone) return { db };
+      db.records = db.records.filter((r) => r.no !== no);
+      db.records.filter((r) => r.empId === gone.empId && r.sec === gone.sec && r.clause === gone.clause).sort((a, b) => a.no - b.no)
+        .forEach((r, i) => { const n = this.ladderAt(i + 1, r.sec, r.clause); r.occ = n.occ; r.code = n.code; });
+      return { db };
+    }, `Delete penalty #${lib.padNo(no)}`);
+    if (out) { if (this.state.sheetNo === no) this.setState({ sheetNo: null }); this.flash(T.deleted); }
+  }
+  exportBackup() { download(new Blob([JSON.stringify(this.state.db, null, 2)], { type: 'application/json' }), `penalty-register-backup-${today()}.json`); }
+  importBackup() {
+    const T = STR[this.state.lang];
+    const inp = document.createElement('input'); inp.type = 'file'; inp.accept = '.json,application/json';
+    inp.onchange = async () => {
+      try {
+        const d = JSON.parse(await inp.files[0].text());
+        if (!d || !Array.isArray(d.records) || typeof d.employees !== 'object') throw 0;
+        if (!confirm(T.confirmRestore)) return;
+        d.nextNo = Math.max(d.nextNo || 1, ...d.records.map((r) => r.no + 1), 1);
+        if (await this.mutate(() => ({ db: d }), 'Restore backup')) this.flash(T.restored);
+      } catch (e) { this.flash(T.badFile); }
+    };
+    inp.click();
+  }
+  exportCsv() {
+    const { db, lib } = this.state;
+    const head = ['Penalty no', 'Date', 'Employee ID', 'Name', 'Nationality', 'Profession', 'Project/Dept', 'Section', 'Clause', 'Violation (AR)', 'Violation (EN)', 'Occurrence', 'Penalty (AR)', 'Penalty (EN)', 'Notes'];
+    const q = (v) => `"${String(v ?? '').replace(/"/g, '""')}"`;
+    const rows = [...db.records].sort((a, b) => a.no - b.no).map((r) => { const e = db.employees[r.empId] || {}; const s = lib.SECTIONS[r.sec]; const it = s.items.find((i) => i[0] === r.clause); return [lib.padNo(r.no), lib.fmtDate(r.date), r.empId, e.name, e.nationality, e.job, e.dept, s.en, r.clause, it[1], it[2], r.occ, lib.decisionText(r, 'ar'), lib.decisionText(r, 'en'), r.notes].map(q).join(','); });
+    download(new Blob(['\ufeff' + [head.map(q).join(','), ...rows].join('\r\n')], { type: 'text/csv;charset=utf-8' }), `penalty-register-${today()}.csv`);
+  }
+
+  startNew(prefillId) {
+    const emp = prefillId && this.state.db.employees[prefillId];
+    this.setState({ tab: 'new', step: 1, form: emp ? { ...emp } : { ...blankForm(), id: prefillId || '' }, editing: false, clause: null, selSec: null, sec: 0, vQuery: '', notes: '', date: today() });
+    this.pull();
+  }
+  async issue() {
+    if (this._busy) return;
+    const { form, selSec, clause, date, notes } = this.state;
+    const clean = Object.fromEntries(Object.entries(form).map(([k, v]) => [k, String(v).trim()]));
+    const out = await this.mutate((db) => {
+      const n = this.nextFor(clean.id, selSec, clause, db);
+      const no = Math.max(db.nextNo || 1, ...db.records.map((r) => r.no + 1));
+      const rec = { no, empId: clean.id, sec: selSec, clause, occ: n.occ, code: n.code, date, notes: notes.trim(), ts: Date.now() };
+      db.nextNo = no + 1; db.employees[clean.id] = clean; db.records.push(rec);
+      return { db, result: rec };
+    }, `Penalty for employee ${clean.id} (${this.state.lib.SECTIONS[selSec].en}, clause ${clause})`);
+    if (!out) return;
+    this.setState({ tab: 'records', rQuery: clean.id, step: 1, sheetNo: out.result.no });
+    this.flash(STR[this.state.lang].saved(this.state.lib.padNo(out.result.no)));
+  }
+
+  renderVals() {
+    const s = this.state, T = STR[s.lang], L = s.lang, lib = s.lib, db = s.db;
+    const wide = s.vw >= 820;
+    const vText = (sec, clause) => { const it = lib.SECTIONS[sec].items.find((i) => i[0] === clause); return L === 'ar' ? it[1] : it[2]; };
+    const secShort = (sec) => L === 'ar' ? lib.SECTIONS[sec].shortAr : lib.SECTIONS[sec].shortEn;
+    const fmt = (iso) => lib ? lib.fmtDate(iso) : iso;
+    const tabsDef = [['home', 'ph-duotone ph-house'], ['new', 'ph-duotone ph-file-plus'], ['records', 'ph-duotone ph-folder-user']];
+    const tabs = tabsDef.map(([k, icon], i) => ({ label: T.tabs[i], icon, color: s.tab === k ? 'var(--color-accent-700)' : 'var(--color-neutral-700)', weight: s.tab === k ? 700 : 400, bg: s.tab === k ? 'var(--color-accent-100)' : 'transparent', go: () => k === 'new' ? this.startNew() : this.setState({ tab: k, rQuery: k === 'records' ? '' : s.rQuery }) }));
+    const base = { t: T, dir: L === 'ar' ? 'rtl' : 'ltr', wide, narrow: !wide, tabs, toggleLang: () => { const l = L === 'ar' ? 'en' : 'ar'; localStorage.setItem(KEY + '-lang', l); this.setState({ lang: l }); }, isHome: s.tab === 'home', isNew: s.tab === 'new', isRecords: s.tab === 'records', toast: s.toast, closeSheet: () => this.setState({ sheetNo: null }), todayLabel: new Date().toLocaleDateString(L === 'ar' ? 'ar-SA-u-ca-gregory-nu-latn' : 'en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }) };
+    if (!(lib && db)) return { ...base, stats: {}, recent: [], steps: [], secTabs: [], vList: [], ladder: {}, sheet: {}, rEmp: {}, empList: [], preview: {}, form: s.form };
+
+    const recView = (r) => { const emp = db.employees[r.empId] || {}; return { no: lib.padNo(r.no), id: r.empId, name: emp.name, date: fmt(r.date), vio: vText(r.sec, r.clause), pen: lib.penaltyShort(r.code, L), occ: T.occ(r.occ), sec: secShort(r.sec), clause: r.clause, open: () => this.setState({ sheetNo: r.no }), del: () => this.deleteRec(r.no) }; };
+    const sorted = [...db.records].sort((a, b) => b.date.localeCompare(a.date) || b.no - a.no);
+    const ym = today().slice(0, 7);
+    const stats = { total: db.records.length, emps: Object.keys(db.employees).length, month: db.records.filter((r) => r.date.slice(0, 7) === ym).length };
+
+    const f = s.form, known = db.employees[f.id];
+    const priorAll = db.records.filter((r) => r.empId === f.id).length;
+    const steps = T.steps.map((label, i) => ({ n: i + 1, label, bar: i + 1 <= s.step ? 'var(--color-accent)' : 'var(--color-neutral-300)', color: i + 1 === s.step ? 'var(--color-text)' : 'var(--color-neutral-700)', weight: i + 1 === s.step ? 700 : 400 }));
+    const q = s.vQuery.trim().toLowerCase();
+    const secTabs = lib.SECTIONS.map((sec) => { const on = s.sec === sec.id && !q; return { label: L === 'ar' ? sec.shortAr : sec.shortEn, bg: on ? 'var(--color-accent-700)' : 'transparent', color: on ? '#fff' : 'var(--color-text)', pick: () => this.setState({ sec: sec.id, vQuery: '' }) }; });
+    const pool = q ? lib.SECTIONS.flatMap((sec) => sec.items.map((it) => [sec.id, it])).filter(([, it]) => (it[1] + ' ' + it[2]).toLowerCase().includes(q)) : lib.SECTIONS[s.sec].items.map((it) => [s.sec, it]);
+    const vList = f.id ? pool.map(([sid, it]) => {
+      const sel = s.clause === it[0] && s.selSec === sid;
+      const n = this.nextFor(f.id, sid, it[0]);
+      const meta = [q ? secShort(sid) : '', T.prevCount(n.prior), `${T.ords[Math.min(n.occ, 4) - 1]}: ${lib.penaltyShort(n.code, L)}`].filter(Boolean).join(' · ');
+      return { clause: it[0], text: L === 'ar' ? it[1] : it[2], meta, bg: sel ? 'var(--color-accent-100)' : 'transparent', numBg: sel ? 'var(--color-accent-700)' : (n.prior ? 'var(--color-accent-2-100)' : 'var(--color-neutral-200)'), numColor: sel ? '#fff' : (n.prior ? 'var(--color-accent-2-800)' : 'var(--color-text)'), pick: () => this.setState({ clause: it[0], selSec: sid, sec: sid }) };
+    }) : [];
+    let ladder = { show: false, cells: [] }, preview = {};
+    const hasSel = s.clause != null && s.selSec != null;
+    if (hasSel && f.id) {
+      const n = this.nextFor(f.id, s.selSec, s.clause);
+      ladder = { show: s.step === 2, clause: s.clause, exceeded: n.exceeded, nowLabel: T.now(n.occ), cells: n.ladder.map((code, i) => {
+        const cur = i === n.idx, past = i < n.occ - 1 && !cur;
+        return { ord: T.ords[i], label: lib.penaltyShort(code, L), bg: cur ? 'var(--color-accent-700)' : past ? 'var(--color-neutral-200)' : 'transparent', color: cur ? '#fff' : past ? 'var(--color-neutral-700)' : 'var(--color-text)', ring: cur ? 'none' : 'inset 0 0 0 1px var(--color-divider)' };
+      }) };
+      const rec = { no: db.nextNo, sec: s.selSec, clause: s.clause, code: n.code, occ: n.occ, date: s.date };
+      preview = { no: lib.padNo(db.nextNo), date: fmt(s.date), secLabel: L === 'ar' ? lib.SECTIONS[s.selSec].ar : lib.SECTIONS[s.selSec].en, clause: s.clause, vio: vText(s.selSec, s.clause), occ: T.occ(n.occ), decision: lib.decisionText(rec, L), exceeded: n.exceeded, hasNotes: !!s.notes.trim() };
+    }
+    const valid1 = f.id.trim() && f.name.trim();
+    const nextDisabled = (s.step === 1 && !valid1) || (s.step === 2 && !hasSel) || (s.step === 3 && !s.date);
+    const setF = (k) => (e) => this.setState({ form: { ...this.state.form, [k]: e.target.value } });
+
+    const rq = s.rQuery.trim();
+    const rKnown = rq && db.employees[rq];
+    const rRecs = rq ? db.records.filter((r) => r.empId === rq) : [];
+    const rEmp = rKnown && rRecs.length ? { show: true, ...rKnown, count: rRecs.length, history: [...rRecs].sort((a, b) => b.no - a.no).map(recView), issue: () => this.startNew(rq) } : { show: false, history: [] };
+    const empList = Object.values(db.employees).map((e) => ({ ...e, count: db.records.filter((r) => r.empId === e.id).length, open: () => this.setState({ rQuery: e.id }) })).filter((e) => e.count).sort((a, b) => b.count - a.count);
+
+    const sr = s.sheetNo != null && this.getRec(s.sheetNo);
+    let sheet = { show: false };
+    if (sr) {
+      const emp = db.employees[sr.empId];
+      const pw = Math.round(Math.min(wide ? 460 : s.vw - 44, 460, ((wide ? s.vh - 260 : s.vh - 250) * 794) / 1123));
+      const ph = Math.round((pw * 1123) / 794);
+      const html = lib.buildFormHTML(sr, emp, new URL('assets/logo.png', location.href).href).replace('</head>', `<style>html,body{overflow:hidden}body{width:794px;transform:scale(${pw / 794});transform-origin:0 0}</style></head>`);
+      sheet = { show: true, no: lib.padNo(sr.no), name: emp.name, id: emp.id, html, busy: s.busy, pw, ph, justify: wide ? 'center' : 'flex-end', pad: wide ? '24px' : '0', maxW: wide ? '560px' : '100%', radius: wide ? 'var(--radius-lg)' : '18px 18px 0 0' };
+    }
+
+    return {
+      ...base, stats, recent: sorted.slice(0, 8).map(recView), noRecent: !sorted.length,
+      homeQuery: s.homeQuery, onHomeQuery: (e) => this.setState({ homeQuery: e.target.value }),
+      onHomeKey: (e) => { if (e.key === 'Enter') this.setState({ tab: 'records', rQuery: s.homeQuery.replace(/\s/g, '') }); },
+      startNew: () => this.startNew(),
+      steps, step1: s.step === 1, step2: s.step === 2, step3: s.step === 3, step4: s.step === 4,
+      form: f, onId: (e) => { const id = e.target.value.replace(/\s/g, ''); const k = this.state.db.employees[id]; const wasKnown = this.state.db.employees[this.state.form.id]; this.setState({ form: k ? { ...k } : { ...(wasKnown ? blankForm() : this.state.form), id }, editing: false, clause: null, selSec: null }); },
+      onName: setF('name'), onJob: setF('job'), onNat: setF('nationality'), onDept: setF('dept'),
+      empFound: !!known && !!f.id && !s.editing, empNew: !!f.id && !known, empEdit: !!f.id && (!known || s.editing), editEmp: () => this.setState({ editing: true }),
+      priorLabel: priorAll ? T.prior(priorAll) : T.noPrior, priorColor: priorAll ? 'var(--color-accent-2-700)' : 'var(--color-neutral-700)',
+      secTabs, vQuery: s.vQuery, onVQuery: (e) => this.setState({ vQuery: e.target.value }), vList, ladder,
+      date: s.date, onDate: (e) => this.setState({ date: e.target.value }), notes: s.notes, onNotes: (e) => this.setState({ notes: e.target.value }),
+      preview, showStepBar: s.tab === 'new',
+      back: () => s.step === 1 ? this.setState({ tab: 'home' }) : this.setState({ step: s.step - 1 }),
+      nextStep: () => { if (nextDisabled) return; s.step === 4 ? this.issue() : this.setState({ step: s.step + 1 }); },
+      nextDisabled: !!nextDisabled || (s.step === 4 && s.sync === 'busy'), nextLabel: s.step === 4 ? (s.sync === 'busy' && s.gh ? T.syncBusy : T.issue) : T.next,
+      rQuery: s.rQuery, onRQuery: (e) => this.setState({ rQuery: e.target.value.replace(/\s/g, '') }),
+      rEmp, rNotFound: !!rq && !rEmp.show, rNotFoundLabel: T.notFound(rq), rShowAll: !rq, empList, noEmps: !empList.length,
+      issueForQuery: () => this.startNew(rq),
+      syncIcon: { local: 'ph-duotone ph-hard-drives', ok: 'ph-duotone ph-cloud-check', busy: 'ph-duotone ph-cloud-arrow-up', error: 'ph-duotone ph-cloud-slash' }[s.sync || 'local'],
+      syncLabel: { local: T.syncLocal, ok: T.syncOk, busy: T.syncBusy, error: T.syncError }[s.sync || 'local'],
+      syncColor: s.sync === 'error' ? 'var(--color-accent-2-700)' : s.sync === 'ok' ? 'var(--color-accent-700)' : 'var(--color-neutral-700)',
+      onSyncClick: () => s.gh ? this.pull() : this.setState({ tab: 'records', rQuery: '' }),
+      ghOn: !!s.gh, ghOff: !s.gh, gh: s.gh || {}, ghForm: s.ghForm || {}, ghBusy: !!s.ghBusy, ghFormErr: s.ghFormErr || '', hasGhFormErr: !!s.ghFormErr,
+      syncErr: s.syncErr || '', hasSyncErr: !!s.syncErr, ghPublic: !!s.ghPublic,
+      syncAtLabel: s.syncAt ? T.lastSync(new Date(s.syncAt).toLocaleTimeString(L === 'ar' ? 'ar-SA-u-nu-latn' : 'en-GB', { hour: '2-digit', minute: '2-digit' })) : '',
+      ghRepoUrl: s.gh ? `https://github.com/${s.gh.owner}/${s.gh.repo}/blob/${s.gh.branch}/${s.gh.path}` : '#',
+      ghTokenUrl: 'https://github.com/settings/personal-access-tokens/new',
+      onGhField: Object.fromEntries(['owner', 'repo', 'branch', 'path', 'token'].map((k) => [k, (e) => this.setState({ ghForm: { ...this.state.ghForm, [k]: e.target.value } })])),
+      connectGh: () => this.connectGh(), disconnectGh: () => this.disconnectGh(), syncNow: () => this.pull(),
+      exportBackup: () => this.exportBackup(), importBackup: () => this.importBackup(), exportCsv: () => this.exportCsv(),
+      sheet, exportWord: () => this.exportWord(), exportPdf: () => this.exportPdf(),
+    };
+  }
+}
+</script>
+</body>
+</html>
