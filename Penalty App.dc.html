@@ -37,6 +37,7 @@
       </sc-if>
       <div style="display:flex;align-items:center;gap:6px;flex:none">
         <button class="btn btn-ghost" onClick="{{ onSyncClick }}" title="{{ syncErr }}" style="padding:6px 8px;font-size:13px;gap:6px;display:flex;align-items:center;color:{{ syncColor }}"><i class="{{ syncIcon }}" style="font-size:20px"></i><sc-if value="{{ wide }}" hint-placeholder-val="{{ true }}"><span>{{ syncLabel }}</span></sc-if></button>
+        <button class="btn btn-icon btn-ghost" onClick="{{ openSettings }}" aria-label="{{ t.settings }}" title="{{ t.settings }}" style="font-size:21px"><i class="ph-duotone ph-gear-six"></i></button>
         <button class="btn btn-secondary" onClick="{{ toggleLang }}" style="padding:6px 12px;font-size:14px;gap:6px;display:flex;align-items:center"><i class="ph-duotone ph-translate"></i>{{ t.langBtn }}</button>
       </div>
     </div>
@@ -267,6 +268,57 @@
                 </button>
               </sc-for>
             </div>
+          </div>
+        </sc-if>
+      </div>
+    </sc-if>
+    </div>
+  </main>
+
+  <sc-if value="{{ showStepBar }}" hint-placeholder-val="{{ false }}">
+    <div style="flex:none;padding:14px 20px;background:var(--color-bg);box-shadow:0 -1px 0 var(--color-divider)">
+      <div style="max-width:760px;margin:0 auto;display:flex;flex-direction:column;gap:12px">
+        <sc-if value="{{ ladder.show }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex;flex-direction:column;gap:8px">
+            <div style="display:flex;justify-content:space-between;gap:8px;font-size:12px;color:var(--color-neutral-700)"><span>{{ t.ladderTitle }} · {{ t.clause }} {{ ladder.clause }}</span><span style="color:var(--color-accent-700);font-weight:600">{{ ladder.nowLabel }}</span></div>
+            <div style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px">
+              <sc-for list="{{ ladder.cells }}" as="c" hint-placeholder-count="4">
+                <div style="border-radius:var(--radius-lg);padding:7px 8px;min-height:54px;display:flex;flex-direction:column;gap:3px;background:{{ c.bg }};color:{{ c.color }};box-shadow:{{ c.ring }}">
+                  <div style="font-size:11px">{{ c.ord }}</div>
+                  <div style="font-size:13px;font-weight:600;line-height:1.3">{{ c.label }}</div>
+                </div>
+              </sc-for>
+            </div>
+            <sc-if value="{{ ladder.exceeded }}" hint-placeholder-val="{{ false }}"><div style="font-size:12px;color:var(--color-accent-2-700)">{{ t.exceeds }}</div></sc-if>
+          </div>
+        </sc-if>
+        <div style="display:flex;gap:10px">
+          <button class="btn btn-ghost" onClick="{{ back }}" style="min-height:50px;padding:0 18px;font-size:16px">{{ t.back }}</button>
+          <button class="btn btn-primary" onClick="{{ nextStep }}" disabled="{{ nextDisabled }}" style="flex:1;min-height:50px;font-size:17px;display:flex;align-items:center;justify-content:center;gap:8px">{{ nextLabel }}</button>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ narrow }}" hint-placeholder-val="{{ false }}">
+    <div style="flex:none;display:grid;grid-template-columns:repeat(3,1fr);padding:8px 12px;padding-bottom:max(10px, env(safe-area-inset-bottom));background:var(--color-bg);box-shadow:0 -1px 0 var(--color-divider)">
+      <sc-for list="{{ tabs }}" as="tb" hint-placeholder-count="3">
+        <button onClick="{{ tb.go }}" style="all:unset;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px 0;min-height:44px;color:{{ tb.color }}">
+          <i class="{{ tb.icon }}" style="font-size:24px"></i>
+          <span style="font-size:12px;font-weight:{{ tb.weight }}">{{ tb.label }}</span>
+        </button>
+      </sc-for>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ settingsOpen }}" hint-placeholder-val="{{ false }}">
+    <div style="position:absolute;inset:0;z-index:35;display:flex;flex-direction:column;justify-content:{{ sheetJustify }};align-items:center;background:color-mix(in srgb, var(--color-text) 45%, transparent);padding:{{ sheetPad }}">
+      <div onClick="{{ closeSettings }}" style="position:absolute;inset:0"></div>
+      <div style="position:relative;width:100%;max-width:620px;max-height:100%;overflow-y:auto;background:var(--color-bg);border-radius:{{ sheetRadius }};padding:18px 24px 28px;padding-bottom:max(28px, env(safe-area-inset-bottom));display:flex;flex-direction:column;gap:32px;box-shadow:var(--shadow-lg)">
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:12px">
+          <h1 style="margin:0;font-family:var(--font-heading), 'Noto Naskh Arabic', serif;font-weight:700;font-size:26px;display:flex;align-items:center;gap:10px"><i class="ph-duotone ph-gear-six" style="font-size:26px"></i>{{ t.settings }}</h1>
+          <button class="btn btn-icon btn-ghost" onClick="{{ closeSettings }}" aria-label="{{ t.close }}" style="font-size:20px"><i class="ph-duotone ph-x"></i></button>
+        </div>
             <div style="display:flex;flex-direction:column;gap:12px;max-width:560px">
               <h2 style="margin:0;font-family:var(--font-heading), 'Noto Naskh Arabic', serif;font-weight:600;font-size:20px;display:flex;align-items:center;gap:8px"><i class="ph-duotone ph-github-logo" style="font-size:22px"></i>{{ t.ghTitle }}</h2>
               <sc-if value="{{ ghOn }}" hint-placeholder-val="{{ false }}">
@@ -311,46 +363,7 @@
                 <button class="btn btn-secondary" onClick="{{ exportCsv }}" style="min-height:44px;display:flex;gap:8px;align-items:center"><i class="ph-duotone ph-table" style="font-size:18px"></i>{{ t.csv }}</button>
               </div>
             </div>
-          </div>
-        </sc-if>
       </div>
-    </sc-if>
-    </div>
-  </main>
-
-  <sc-if value="{{ showStepBar }}" hint-placeholder-val="{{ false }}">
-    <div style="flex:none;padding:14px 20px;background:var(--color-bg);box-shadow:0 -1px 0 var(--color-divider)">
-      <div style="max-width:760px;margin:0 auto;display:flex;flex-direction:column;gap:12px">
-        <sc-if value="{{ ladder.show }}" hint-placeholder-val="{{ false }}">
-          <div style="display:flex;flex-direction:column;gap:8px">
-            <div style="display:flex;justify-content:space-between;gap:8px;font-size:12px;color:var(--color-neutral-700)"><span>{{ t.ladderTitle }} · {{ t.clause }} {{ ladder.clause }}</span><span style="color:var(--color-accent-700);font-weight:600">{{ ladder.nowLabel }}</span></div>
-            <div style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px">
-              <sc-for list="{{ ladder.cells }}" as="c" hint-placeholder-count="4">
-                <div style="border-radius:var(--radius-lg);padding:7px 8px;min-height:54px;display:flex;flex-direction:column;gap:3px;background:{{ c.bg }};color:{{ c.color }};box-shadow:{{ c.ring }}">
-                  <div style="font-size:11px">{{ c.ord }}</div>
-                  <div style="font-size:13px;font-weight:600;line-height:1.3">{{ c.label }}</div>
-                </div>
-              </sc-for>
-            </div>
-            <sc-if value="{{ ladder.exceeded }}" hint-placeholder-val="{{ false }}"><div style="font-size:12px;color:var(--color-accent-2-700)">{{ t.exceeds }}</div></sc-if>
-          </div>
-        </sc-if>
-        <div style="display:flex;gap:10px">
-          <button class="btn btn-ghost" onClick="{{ back }}" style="min-height:50px;padding:0 18px;font-size:16px">{{ t.back }}</button>
-          <button class="btn btn-primary" onClick="{{ nextStep }}" disabled="{{ nextDisabled }}" style="flex:1;min-height:50px;font-size:17px;display:flex;align-items:center;justify-content:center;gap:8px">{{ nextLabel }}</button>
-        </div>
-      </div>
-    </div>
-  </sc-if>
-
-  <sc-if value="{{ narrow }}" hint-placeholder-val="{{ false }}">
-    <div style="flex:none;display:grid;grid-template-columns:repeat(3,1fr);padding:8px 12px;padding-bottom:max(10px, env(safe-area-inset-bottom));background:var(--color-bg);box-shadow:0 -1px 0 var(--color-divider)">
-      <sc-for list="{{ tabs }}" as="tb" hint-placeholder-count="3">
-        <button onClick="{{ tb.go }}" style="all:unset;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px 0;min-height:44px;color:{{ tb.color }}">
-          <i class="{{ tb.icon }}" style="font-size:24px"></i>
-          <span style="font-size:12px;font-weight:{{ tb.weight }}">{{ tb.label }}</span>
-        </button>
-      </sc-for>
     </div>
   </sc-if>
 
@@ -383,7 +396,7 @@
 <script type="text/x-dc" data-dc-script data-props="{&quot;lang&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;ar&quot;,&quot;en&quot;],&quot;default&quot;:&quot;ar&quot;,&quot;tsType&quot;:&quot;'ar'|'en'&quot;}}">
 const KEY = 'rimaya-penalties';
 const STR = {
-  ar: { appName: 'سجل الجزاءات', org: 'الرماية · إدارة شئون الموظفين', langBtn: 'EN', homeTitle: 'سجل المخالفات والجزاءات', stTotal: 'جزاءات مسجلة', stEmp: 'موظفون', stMonth: 'هذا الشهر', issueNew: 'إصدار جزاء جديد', searchPh: 'ابحث بالرقم الوظيفي', searchPhEnter: 'ابحث بالرقم الوظيفي ثم Enter', recent: 'أحدث الجزاءات', emptyRecent: 'لا توجد جزاءات مسجلة بعد.', steps: ['الموظف', 'المخالفة', 'التفاصيل', 'المراجعة'], whoTitle: 'على من يُطبق الجزاء؟', empId: 'الرقم الوظيفي', name: 'الاسم', nationality: 'الجنسية', job: 'المهنة', dept: 'المشروع / القسم', found: 'موظف مسجل', editEmp: 'تعديل البيانات', newEmp: 'رقم غير مسجل — أكمل بيانات الموظف', prior: (n) => `${n} جزاء سابق مسجل`, noPrior: 'لا توجد جزاءات سابقة', next: 'التالي', back: 'رجوع', chooseViolation: 'اختر المخالفة', searchViolation: 'ابحث في نص المخالفة', clause: 'البند', ladderTitle: 'تدرج الجزاء', ords: ['أول مرة', 'ثاني مرة', 'ثالث مرة', 'رابع مرة'], occ: (n) => `المرة ${['الأولى','الثانية','الثالثة','الرابعة'][n-1] || n}`, now: (n) => `سيُطبق: ${['أول','ثاني','ثالث','رابع'][Math.min(n,4)-1]} مرة`, prevCount: (n) => n ? `سبق ارتكابها ${n} مرة` : '', exceeds: 'تجاوز عدد التكرارات في الجدول — يُحال الأمر إلى الإدارة.', detailsTitle: 'تفاصيل الواقعة', date: 'تاريخ الجزاء', notes: 'وصف الواقعة / ملاحظات', notesPh: 'مثال: حضر الساعة 7:40 بدلاً من 7:15 دون إذن مسبق.', notesHint: 'الملاحظات تُحفظ في سجل الموظف ولا تظهر في النموذج المطبوع.', review: 'مراجعة وإصدار', penaltyNo: 'جزاء رقم', decision: 'الجزاء المقرر', issue: 'إصدار وحفظ', saved: (n) => `تم حفظ الجزاء رقم ${n}`, recordsTitle: 'سجلات الموظفين', notFound: (id) => `لا توجد جزاءات مسجلة للرقم الوظيفي ${id}.`, issueFor: 'إصدار جزاء لهذا الموظف', history: 'سجل الجزاءات', allEmployees: 'جميع الموظفين', docTitle: 'إنذار ــ جزاء', exportWord: 'Word', exportPdf: 'PDF', close: 'إغلاق', preparing: 'جاري تجهيز الملف…', openDoc: 'عرض النموذج', del: 'حذف', noPenaltiesEmp: 'لا توجد جزاءات مسجلة لهذا الموظف.', delEmp: 'حذف الموظف من السجل', confirmDelEmp: (id) => `حذف الموظف ${id} من السجل؟`, priorTitle: 'الجزاءات السابقة', delPenalty: 'حذف هذا الجزاء', confirmDel: (n) => `حذف الجزاء رقم ${n}؟ سيتم إعادة احتساب التكرار للجزاءات اللاحقة.`, deleted: 'تم الحذف', backupTitle: 'النسخ الاحتياطي', backupHint: 'نزّل نسخة احتياطية من السجل كاملاً، أو استعد نسخة سابقة. عند الاتصال بـ GitHub تُرفع النسخة المستعادة إليه.', backupDl: 'تنزيل نسخة احتياطية', backupUp: 'استعادة نسخة', csv: 'تصدير Excel (CSV)', restored: 'تمت استعادة البيانات', badFile: 'الملف غير صالح', confirmRestore: 'استبدال جميع البيانات الحالية بالنسخة الاحتياطية؟', tabs: ['الرئيسية', 'جزاء جديد', 'السجلات'],
+  ar: { appName: 'سجل الجزاءات', org: 'الرماية · إدارة شئون الموظفين', langBtn: 'EN', homeTitle: 'سجل المخالفات والجزاءات', stTotal: 'جزاءات مسجلة', stEmp: 'موظفون', stMonth: 'هذا الشهر', issueNew: 'إصدار جزاء جديد', searchPh: 'ابحث بالرقم الوظيفي', searchPhEnter: 'ابحث بالرقم الوظيفي ثم Enter', recent: 'أحدث الجزاءات', emptyRecent: 'لا توجد جزاءات مسجلة بعد.', steps: ['الموظف', 'المخالفة', 'التفاصيل', 'المراجعة'], whoTitle: 'على من يُطبق الجزاء؟', empId: 'الرقم الوظيفي', name: 'الاسم', nationality: 'الجنسية', job: 'المهنة', dept: 'المشروع / القسم', found: 'موظف مسجل', editEmp: 'تعديل البيانات', newEmp: 'رقم غير مسجل — أكمل بيانات الموظف', prior: (n) => `${n} جزاء سابق مسجل`, noPrior: 'لا توجد جزاءات سابقة', next: 'التالي', back: 'رجوع', chooseViolation: 'اختر المخالفة', searchViolation: 'ابحث في نص المخالفة', clause: 'البند', ladderTitle: 'تدرج الجزاء', ords: ['أول مرة', 'ثاني مرة', 'ثالث مرة', 'رابع مرة'], occ: (n) => `المرة ${['الأولى','الثانية','الثالثة','الرابعة'][n-1] || n}`, now: (n) => `سيُطبق: ${['أول','ثاني','ثالث','رابع'][Math.min(n,4)-1]} مرة`, prevCount: (n) => n ? `سبق ارتكابها ${n} مرة` : '', exceeds: 'تجاوز عدد التكرارات في الجدول — يُحال الأمر إلى الإدارة.', detailsTitle: 'تفاصيل الواقعة', date: 'تاريخ الجزاء', notes: 'وصف الواقعة / ملاحظات', notesPh: 'مثال: حضر الساعة 7:40 بدلاً من 7:15 دون إذن مسبق.', notesHint: 'الملاحظات تُحفظ في سجل الموظف ولا تظهر في النموذج المطبوع.', review: 'مراجعة وإصدار', penaltyNo: 'جزاء رقم', decision: 'الجزاء المقرر', issue: 'إصدار وحفظ', saved: (n) => `تم حفظ الجزاء رقم ${n}`, recordsTitle: 'سجلات الموظفين', notFound: (id) => `لا توجد جزاءات مسجلة للرقم الوظيفي ${id}.`, issueFor: 'إصدار جزاء لهذا الموظف', history: 'سجل الجزاءات', allEmployees: 'جميع الموظفين', docTitle: 'إنذار ــ جزاء', exportWord: 'Word', exportPdf: 'PDF', close: 'إغلاق', preparing: 'جاري تجهيز الملف…', openDoc: 'عرض النموذج', del: 'حذف', settings: 'الإعدادات', noPenaltiesEmp: 'لا توجد جزاءات مسجلة لهذا الموظف.', delEmp: 'حذف الموظف من السجل', confirmDelEmp: (id) => `حذف الموظف ${id} من السجل؟`, priorTitle: 'الجزاءات السابقة', delPenalty: 'حذف هذا الجزاء', confirmDel: (n) => `حذف الجزاء رقم ${n}؟ سيتم إعادة احتساب التكرار للجزاءات اللاحقة.`, deleted: 'تم الحذف', backupTitle: 'النسخ الاحتياطي', backupHint: 'نزّل نسخة احتياطية من السجل كاملاً، أو استعد نسخة سابقة. عند الاتصال بـ GitHub تُرفع النسخة المستعادة إليه.', backupDl: 'تنزيل نسخة احتياطية', backupUp: 'استعادة نسخة', csv: 'تصدير Excel (CSV)', restored: 'تمت استعادة البيانات', badFile: 'الملف غير صالح', confirmRestore: 'استبدال جميع البيانات الحالية بالنسخة الاحتياطية؟', tabs: ['الرئيسية', 'جزاء جديد', 'السجلات'],
     syncLocal: 'على الجهاز', syncOk: 'متزامن', syncBusy: 'جاري المزامنة…', syncError: 'خطأ في المزامنة', lastSync: (t) => `آخر مزامنة ${t}`,
     ghTitle: 'التخزين على GitHub', ghHintOff: 'احفظ السجلات في ملف داخل مستودع GitHub لتتشاركها جميع الأجهزة. يُفضّل مستودع خاص (Private) منفصل للبيانات.', ghHintOn: 'كل جزاء يُحفظ كتعديل (commit) في الملف التالي. تُحدّث البيانات تلقائياً كل دقيقة.',
     ghOwner: 'المالك (اسم المستخدم أو المؤسسة)', ghRepo: 'المستودع', ghBranch: 'الفرع', ghPath: 'مسار الملف', ghToken: 'رمز الوصول (Fine-grained token)', ghTokenHelp: 'أنشئ رمزاً بصلاحية Contents: Read and write على هذا المستودع فقط', ghTokenNote: 'يُحفظ الرمز على هذا الجهاز فقط ولا يُرفع لأي مكان.',
@@ -391,7 +404,7 @@ const STR = {
     ghUseCloud: (c, l) => `يحتوي ملف GitHub على ${c} جزاء. سيتم استبدال ${l} جزاء محفوظ على هذا الجهاز. متابعة؟`, ghCreate: (p, n) => `الملف ${p} غير موجود. إنشاؤه ورفع ${n} جزاء من هذا الجهاز؟`,
     ghConnected: 'تم الاتصال بـ GitHub', ghDiscConfirm: 'قطع الاتصال؟ تبقى البيانات في GitHub ونسخة منها على هذا الجهاز.', ghSaveFail: 'لم يُحفظ', ghPublicWarn: 'تنبيه: هذا المستودع عام — بيانات الموظفين مرئية للجميع. استخدم مستودعاً خاصاً.',
     ghE401: 'رمز الوصول غير صالح أو منتهي.', ghERO: 'الرمز لا يملك صلاحية الكتابة (Contents: Read and write).', ghE404: 'المستودع غير موجود أو الرمز لا يملك صلاحية الوصول إليه.', ghENet: 'تعذر الوصول إلى GitHub — تحقق من الاتصال بالإنترنت.' },
-  en: { appName: 'Penalty Register', org: 'Al Rimaya · Personnel Affairs', langBtn: 'ع', homeTitle: 'Violations & penalties register', stTotal: 'Penalties on file', stEmp: 'Employees', stMonth: 'This month', issueNew: 'Issue a new penalty', searchPh: 'Search by employee ID', searchPhEnter: 'Employee ID, then Enter', recent: 'Recent penalties', emptyRecent: 'No penalties on file yet.', steps: ['Employee', 'Violation', 'Details', 'Review'], whoTitle: 'Who is this penalty for?', empId: 'Employee ID', name: 'Name', nationality: 'Nationality', job: 'Profession', dept: 'Project / Dept.', found: 'Employee on file', editEmp: 'Edit details', newEmp: 'New ID — complete the employee details', prior: (n) => `${n} prior ${n === 1 ? 'penalty' : 'penalties'} on file`, noPrior: 'No prior penalties', next: 'Next', back: 'Back', chooseViolation: 'Choose the violation', searchViolation: 'Search violations', clause: 'Clause', ladderTitle: 'Penalty ladder', ords: ['1st', '2nd', '3rd', '4th'], occ: (n) => `${['1st','2nd','3rd','4th'][n-1] || n + 'th'} occurrence`, now: (n) => `Applies: ${['1st','2nd','3rd','4th'][Math.min(n,4)-1]} time`, prevCount: (n) => n ? `Committed ${n}× before` : '', exceeds: 'Repetitions exceed the schedule — refer to management.', detailsTitle: 'Incident details', date: 'Penalty date', notes: 'Incident description / notes', notesPh: 'e.g. Arrived 7:40 instead of 7:15 without prior permission.', notesHint: 'Notes are kept in the employee record and are not printed on the form.', review: 'Review & issue', penaltyNo: 'Penalty no.', decision: 'Penalty decided', issue: 'Issue & save', saved: (n) => `Penalty #${n} saved`, recordsTitle: 'Employee records', notFound: (id) => `No penalties on record for employee ID ${id}.`, issueFor: 'Issue a penalty for this employee', history: 'Penalty history', allEmployees: 'All employees', docTitle: 'Warning & Penalty', exportWord: 'Word', exportPdf: 'PDF', close: 'Close', preparing: 'Preparing file…', openDoc: 'Open form', del: 'Delete', noPenaltiesEmp: 'No penalties on record for this employee.', delEmp: 'Remove employee from register', confirmDelEmp: (id) => `Remove employee ${id} from the register?`, priorTitle: 'Earlier penalties', delPenalty: 'Delete this penalty', confirmDel: (n) => `Delete penalty #${n}? Occurrence counts of later penalties will be recalculated.`, deleted: 'Deleted', backupTitle: 'Backup', backupHint: 'Download a copy of the whole register, or restore an earlier one. When connected to GitHub, a restored backup is uploaded there.', backupDl: 'Download backup', backupUp: 'Restore backup', csv: 'Export Excel (CSV)', restored: 'Data restored', badFile: 'Invalid file', confirmRestore: 'Replace all current data with this backup?', tabs: ['Home', 'New penalty', 'Records'],
+  en: { appName: 'Penalty Register', org: 'Al Rimaya · Personnel Affairs', langBtn: 'ع', homeTitle: 'Violations & penalties register', stTotal: 'Penalties on file', stEmp: 'Employees', stMonth: 'This month', issueNew: 'Issue a new penalty', searchPh: 'Search by employee ID', searchPhEnter: 'Employee ID, then Enter', recent: 'Recent penalties', emptyRecent: 'No penalties on file yet.', steps: ['Employee', 'Violation', 'Details', 'Review'], whoTitle: 'Who is this penalty for?', empId: 'Employee ID', name: 'Name', nationality: 'Nationality', job: 'Profession', dept: 'Project / Dept.', found: 'Employee on file', editEmp: 'Edit details', newEmp: 'New ID — complete the employee details', prior: (n) => `${n} prior ${n === 1 ? 'penalty' : 'penalties'} on file`, noPrior: 'No prior penalties', next: 'Next', back: 'Back', chooseViolation: 'Choose the violation', searchViolation: 'Search violations', clause: 'Clause', ladderTitle: 'Penalty ladder', ords: ['1st', '2nd', '3rd', '4th'], occ: (n) => `${['1st','2nd','3rd','4th'][n-1] || n + 'th'} occurrence`, now: (n) => `Applies: ${['1st','2nd','3rd','4th'][Math.min(n,4)-1]} time`, prevCount: (n) => n ? `Committed ${n}× before` : '', exceeds: 'Repetitions exceed the schedule — refer to management.', detailsTitle: 'Incident details', date: 'Penalty date', notes: 'Incident description / notes', notesPh: 'e.g. Arrived 7:40 instead of 7:15 without prior permission.', notesHint: 'Notes are kept in the employee record and are not printed on the form.', review: 'Review & issue', penaltyNo: 'Penalty no.', decision: 'Penalty decided', issue: 'Issue & save', saved: (n) => `Penalty #${n} saved`, recordsTitle: 'Employee records', notFound: (id) => `No penalties on record for employee ID ${id}.`, issueFor: 'Issue a penalty for this employee', history: 'Penalty history', allEmployees: 'All employees', docTitle: 'Warning & Penalty', exportWord: 'Word', exportPdf: 'PDF', close: 'Close', preparing: 'Preparing file…', openDoc: 'Open form', del: 'Delete', settings: 'Settings', noPenaltiesEmp: 'No penalties on record for this employee.', delEmp: 'Remove employee from register', confirmDelEmp: (id) => `Remove employee ${id} from the register?`, priorTitle: 'Earlier penalties', delPenalty: 'Delete this penalty', confirmDel: (n) => `Delete penalty #${n}? Occurrence counts of later penalties will be recalculated.`, deleted: 'Deleted', backupTitle: 'Backup', backupHint: 'Download a copy of the whole register, or restore an earlier one. When connected to GitHub, a restored backup is uploaded there.', backupDl: 'Download backup', backupUp: 'Restore backup', csv: 'Export Excel (CSV)', restored: 'Data restored', badFile: 'Invalid file', confirmRestore: 'Replace all current data with this backup?', tabs: ['Home', 'New penalty', 'Records'],
     syncLocal: 'This device', syncOk: 'Synced', syncBusy: 'Syncing…', syncError: 'Sync error', lastSync: (t) => `Last synced ${t}`,
     ghTitle: 'Storage on GitHub', ghHintOff: 'Save the register as a file in a GitHub repository so every device shares it. Use a separate private repository for the data.', ghHintOn: 'Every penalty is saved as a commit to the file below. Data refreshes automatically every minute.',
     ghOwner: 'Owner (user or organization)', ghRepo: 'Repository', ghBranch: 'Branch', ghPath: 'File path', ghToken: 'Access token (fine-grained)', ghTokenHelp: 'Create a token with Contents: Read and write on this repository only', ghTokenNote: 'The token is stored on this device only and never uploaded.',
@@ -664,7 +677,9 @@ class Component extends DCLogic {
       syncIcon: { local: 'ph-duotone ph-hard-drives', ok: 'ph-duotone ph-cloud-check', busy: 'ph-duotone ph-cloud-arrow-up', error: 'ph-duotone ph-cloud-slash' }[s.sync || 'local'],
       syncLabel: { local: T.syncLocal, ok: T.syncOk, busy: T.syncBusy, error: T.syncError }[s.sync || 'local'],
       syncColor: s.sync === 'error' ? 'var(--color-accent-2-700)' : s.sync === 'ok' ? 'var(--color-accent-700)' : 'var(--color-neutral-700)',
-      onSyncClick: () => s.gh ? this.pull() : this.setState({ tab: 'records', rQuery: '' }),
+      onSyncClick: () => s.gh && s.sync !== 'error' ? this.pull() : this.setState({ settingsOpen: true }),
+      settingsOpen: !!s.settingsOpen, openSettings: () => this.setState({ settingsOpen: true }), closeSettings: () => this.setState({ settingsOpen: false }),
+      sheetJustify: wide ? 'center' : 'flex-end', sheetPad: wide ? '24px' : '0', sheetRadius: wide ? 'var(--radius-lg)' : '18px 18px 0 0',
       ghOn: !!s.gh, ghOff: !s.gh, gh: s.gh || {}, ghForm: s.ghForm || {}, ghBusy: !!s.ghBusy, ghFormErr: s.ghFormErr || '', hasGhFormErr: !!s.ghFormErr,
       syncErr: s.syncErr || '', hasSyncErr: !!s.syncErr, ghPublic: !!s.ghPublic,
       syncAtLabel: s.syncAt ? T.lastSync(new Date(s.syncAt).toLocaleTimeString(L === 'ar' ? 'ar-SA-u-nu-latn' : 'en-GB', { hour: '2-digit', minute: '2-digit' })) : '',
